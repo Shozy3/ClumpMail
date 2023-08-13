@@ -62,34 +62,20 @@ def main():
         except:
             body = "Could not decode body."
 
-        print(f"From: {sender}\nSubject: {subject}\nBody: {body[:100]}...\n{'-'*50}")
+        # print(f"From: {sender}\nSubject: {subject}\nBody: {body[:100]}...\n{'-'*50}")
+
+        # This is the code for the PEGASUS NLP summarizer
+        tokenizer = PegasusTokenizer.from_pretrained("google/pegasus-cnn_dailymail")
+        model = PegasusForConditionalGeneration.from_pretrained("google/pegasus-cnn_dailymail")
+
+        emails = {}
+        emails[subject] = body
+
+        tokens = tokenizer(body, truncation = True, padding = "longest", return_tensors = "pt")
+        summary = model.generate(**tokens) 
+
+        summarized = {}
+        summarized[subject] = summary
 
 if __name__ == '__main__':
     main()
-
-# This is the code for the PEGASUS NLP summarizer
-tokenizer = PegasusTokenizer.from_pretrained("google/pegasus-cnn_dailymail")
-model = PegasusForConditionalGeneration.from_pretrained("google/pegasus-cnn_dailymail")
-text = """
-Nomination Deadline is Fast Approaching on August 15th - Submit Today!
-It only takes 20 minutes...
- 
-
-Since 1989, The ASTech Awards (ASTech.ca) has showcased Alberta’s excellence in science, technology and innovation by recognizing more than 600 individuals, organizations and teams at their annual prestigious awards event, bringing together industry, academia, government, and entrepreneurs to celebrate and reward excellence to inspire innovation.
-
-Past Award Winners Include: SMART Technologies, AuroraWatch, Orpyx Medical Technologies, and many more.
-
-Nominate a deserving individual, team, or company that inspires innovation in our province before it’s too late! 
-
-Why Nominate a Deserving Award Candidate:
-Help Grow Alberta's Tech Sector and Entrepreneurial Companies
-Companies, Researchers, Regions, and Post-Secondaries Gain valuable peer and sector recognition
-Greater Investment, Customers, Employees are attracted to nominated Innovators
-Greater visibility to a wider pan-provincial cross-sector audience - Across Industry, Government, Academia
-Credibility enhancement of all Alberta's Innovation Community 
-Receive ongoing recognition as a leader in Alberta Science and Technology as an ASTech Alumni
-Together, let’s inspire innovation through shared success and the best of all worlds.
-"""
-tokens = tokenizer(text, truncation = True, padding = "longest", return_tensors = "pt")
-summary = model.generate(**tokens) 
-print(tokenizer.decode(summary[0]))
