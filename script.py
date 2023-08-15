@@ -1,4 +1,4 @@
-import os.path
+import os
 import base64
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -8,11 +8,24 @@ from googleapiclient.discovery import build
 
 from transformers import PegasusForConditionalGeneration, PegasusTokenizer
 import warnings
-warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore", category=UserWarning, module='transformers', message=".*weights of PegasusForConditionalGeneration were not initialized.*")
+
+import logging
+logging.basicConfig(level=logging.ERROR)
+
 
 
 # If modifying these SCOPES, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+tokenizer_path = os.path.join(script_dir, "local_pegasus_tokenizer")
+model_path = os.path.join(script_dir, "local_pegasus_model")
+
+tokenizer = PegasusTokenizer.from_pretrained(tokenizer_path)
+model = PegasusForConditionalGeneration.from_pretrained(model_path)
+
 
 def get_service():
     creds = None
@@ -64,18 +77,19 @@ def main():
 
         # print(f"From: {sender}\nSubject: {subject}\nBody: {body[:100]}...\n{'-'*50}")
 
-        # This is the code for the PEGASUS NLP summarizer
-        tokenizer = PegasusTokenizer.from_pretrained("google/pegasus-cnn_dailymail")
-        model = PegasusForConditionalGeneration.from_pretrained("google/pegasus-cnn_dailymail")
-
         emails = {}
         emails[subject] = body
 
         tokens = tokenizer(body, truncation = True, padding = "longest", return_tensors = "pt")
-        summary = model.generate(**tokens) 
+        summary_encoded = model.generate(**tokens) 
+
+        summary_decoded = tokenizer.decode(summary_encoded[0])
 
         summarized = {}
-        summarized[subject] = summary
+        summarized[subject] = summary_decoded
+    
+        print(subject)
+        print(summary_decoded)
 
 if __name__ == '__main__':
     main()
