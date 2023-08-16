@@ -1,7 +1,5 @@
-<<<<<<< HEAD
 from __future__ import print_function
-=======
->>>>>>> c09644bd6a72c5050a96d63be86da5c3c4fbd0b8
+
 import os
 import base64
 import google.auth
@@ -16,27 +14,15 @@ from google.auth.transport.requests import Request
 from transformers import PegasusForConditionalGeneration, PegasusTokenizer
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module='transformers', message=".*weights of PegasusForConditionalGeneration were not initialized.*")
-<<<<<<< HEAD
-=======
-
-import logging
-logging.basicConfig(level=logging.ERROR)
 
 
 import logging
 logging.basicConfig(level=logging.ERROR)
+
+
 
 # If modifying these SCOPES, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/gmail.send', 'https://www.googleapis.com/auth/gmail.readonly']
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
-
-tokenizer_path = os.path.join(script_dir, "local_pegasus_tokenizer")
-model_path = os.path.join(script_dir, "local_pegasus_model")
-
-tokenizer = PegasusTokenizer.from_pretrained(tokenizer_path)
-model = PegasusForConditionalGeneration.from_pretrained(model_path)
-
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -56,7 +42,7 @@ def get_service():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
+            creds = flow.run_local_server(port=8080)
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
     service = build('gmail', 'v1', credentials=creds)
@@ -84,13 +70,12 @@ def main():
             continue
             body = "Could not decode body."
 
-<<<<<<< HEAD
         tokens = tokenizer(body, truncation=True, padding="longest", return_tensors="pt")
         summary_encoded = model.generate(**tokens)
         summary_decoded = tokenizer.decode(summary_encoded[0])
 
-        return_email += "Subject: " + subject + '\n'
-        return_email += "Summary: " + summary_decoded + '\n\n'
+        return_email += "Subject: " + subject + '\n\n'
+        return_email += "Summary: " + summary_decoded + '\n\n\n\n'
 
     message = EmailMessage()
     message.set_content(return_email)
@@ -105,23 +90,7 @@ def main():
     except HttpError as error:
         print("An error occured: %s" % error)
 
-=======
-        # print(f"From: {sender}\nSubject: {subject}\nBody: {body[:100]}...\n{'-'*50}")
 
-        emails = {}
-        emails[subject] = body
-
-        tokens = tokenizer(body, truncation = True, padding = "longest", return_tensors = "pt")
-        summary_encoded = model.generate(**tokens) 
-
-        summary_decoded = tokenizer.decode(summary_encoded[0])
-
-        summarized = {}
-        summarized[subject] = summary_decoded
-    
-        print(subject)
-        print(summary_decoded)
->>>>>>> c09644bd6a72c5050a96d63be86da5c3c4fbd0b8
 
 if __name__ == '__main__':
     main()
