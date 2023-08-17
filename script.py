@@ -34,6 +34,9 @@ model = PegasusForConditionalGeneration.from_pretrained(model_path)
 
 
 def get_service():
+    """
+    Verify that the user has the neccesary credentials for interacing with the Gmail API
+    """
     creds = None
     if os.path.exists('token.json'):
         creds = Credentials.from_authorized_user_file('token.json')
